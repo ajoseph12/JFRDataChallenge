@@ -3,4 +3,9 @@
 # Notebooks
 
 # Folders
-.data/
+data/
+
+# File type
+*.pyc
+notebooks/.ipynb_checkpoints/*
+.ipynb_checkpoints
