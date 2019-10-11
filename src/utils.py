@@ -1,5 +1,6 @@
 ## Dependencies
 
+import os
 import glob
 import random
 
@@ -10,6 +11,14 @@ import pandas as pd
 import pydicom
 from pydicom.data import get_testdata_files
 
+
+def create_dir(dir_path):
+
+    if not os.path.exists(dir_path):
+        os.mkdir(dir_path)
+        print("Model save directory doesn't exist. Created directory!")
+    else:
+        print("Model save directory already exists")
 
 
 def get_PatientInfo(database_path, split=0.9, shuffle=True, seed=100):

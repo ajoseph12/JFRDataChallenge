@@ -3,6 +3,7 @@ import random
 
 import cv2
 import numpy as np
+import pandas as pd
 
 import pydicom
 from pydicom.data import get_testdata_files
@@ -49,7 +50,7 @@ class SEPGenerator(ImagePreprocess):
             print(e, path)
 
 
-    def generator(self, patient_InfoDatabase, max_slices=70, dark_matter=0.7, shuffle=True):
+    def generator(self, patient_InfoDatabase, max_slices=70, dark_matter=0.7, shuffle=True, train=True):
 
         """
         Args:
@@ -74,7 +75,10 @@ class SEPGenerator(ImagePreprocess):
             patient_dcm_FilePaths, patient_label 	= self.__get_DCMFilePaths(patient_information)
 
             # Select a random transformation 
-            transformation = random.choice(['original', 'flip_v', 'flip_h', 'flip_vh', 'rot_c', 'rot_ac'])
+            if not train:
+                transformation = 'original'
+            else:
+                transformation = random.choice(['original', 'flip_v', 'flip_h', 'flip_vh', 'rot_c', 'rot_ac'])
             
             # Create array of zeors # (x, 1, 299, 299) --> (slices, channels, height, width)
             darkmatter_idx 	= []
@@ -103,3 +107,133 @@ class SEPGenerator(ImagePreprocess):
             if itr == limit:
                 itr = 0
 
+
+
+
+class CcocGenerator(object):
+
+    """
+    Creates generator object for COCO images
+    """
+
+    def __init__(self, 
+                 base_path='/media/data/Coco/', 
+                 resize=229, 
+                 batch_size=64):
+        """
+        The init method called during class instantiation
+        Args:
+        - base_path     (str) : path towards the cooc directory 
+        - resize        (int) : dimensions to which image should be resized
+        - batch_size    (int) : sise of batch
+        """
+
+        self.resize         = resize
+        self.base_path      = base_path
+        self.batch_size     = batch_size
+
+
+    def __read_df(self, dataset):
+        """
+        The method is used to read csv file and extract paths and labels
+        Args:
+        - dataset   (str)       : string indicating train or validation csv file
+        Returns:
+        - paths     (list)      : list of image paths
+        - labels    (nd.array)  : array of labels for corresponding images
+        """
+        
+        df = pd.read_csv(self.base_path + dataset + '2017.csv')
+        paths = df['Paths'].tolist()
+        labels = df.drop(['Paths'], axis=1).values
+        
+        return paths, labels
+
+
+    def __read_image(self, image_path, channels):
+        """
+        The method reads an image given its path
+        Args:
+        - image_path    (str)       : path of the image file
+        - channels      (int)       : number of channels the read image should have
+        Returns:
+        - image         (nd.array)  : array representing image pixels 
+        """
+        
+        if channels == 3:
+            image = cv2.imread(image_path)
+        elif channels == 1:
+            image = cv2.imread(image_path, 0)      
+        else:
+            raise ValueError("Channels value not supported : {}".format(channels))
+            
+        return image
+
+
+    def __image_preproc(self, image):
+        """
+        The method performs required preprocessing on the image
+        Args:
+        - image     (nd.array)  : image array 
+        - resize    (int)       : size to which the image ought to be resized
+        Returns
+        - image     (nd.array)  : image array that underwent preprocessing
+        """
+    
+        # image resizing
+        image = cv2.resize(image, (self.resize, self.resize))
+        # min-max normalization 
+        image = np.float32((image - np.min(image))/(0.00001+(np.max(image) - np.min(image))))
+        
+        return image
+
+
+    def generator(self, dataset, channels=3):
+        """
+        Method that returns a generator object
+        Args:
+        - dataset       (str)       : string indicating train or validation set
+        - channels      (int)       : number of channels the images have
+        Yields:
+        - batch_images  (nd.array)  : a batch of images of shape (batch_size, rows, cols, channesl)
+        - batch_labels  (nd,array)  : a batch of labels of shape (batch_size, classes)
+        """
+        
+        paths, labels = self.__read_df(dataset)
+        steps = int(len(paths)/self.batch_size)
+    
+        # Intialization to keep track of generator
+        itr = 0
+        step = 0
+            
+        # Iterate through batches 
+        # Used while loop instead of for loop beacause keras fit_generator
+        # thows stop iteration exception with for loop
+        while True: 
+            
+            # Get batch of image paths and their corresponding labels
+            batch_paths = paths[itr:itr+self.batch_size]
+            batch_labels = labels[itr:itr+self.batch_size, :]
+            
+            # Create batch array of zeros for image array
+            batch_images = np.zeros((len(batch_paths), channels, self.resize, self.resize))
+            
+            for n, path in enumerate(batch_paths):
+                
+                temp_image = self.__read_image(path, channels)
+                temp_image = self.__image_preproc(temp_image)
+                
+                if len(temp_image.shape) == 2:
+                    temp_image = np.resize(temp_image, (1, temp_image.shape[0], 
+                                                        temp_image.shape[1]))
+                
+                batch_images[n] = temp_image
+
+            yield batch_images, batch_labels
+            
+            itr += self.batch_size
+            step += 1
+
+            if step == steps:
+                itr = 0
+                step = 0

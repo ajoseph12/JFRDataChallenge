@@ -77,7 +77,8 @@ class MVCNN(nn.Module):
                                      nn.Linear(4096, 4096),
                                      nn.ReLU(),
                                      nn.Dropout(0.9),
-                                     nn.Linear(4096, 2))
+                                     nn.Linear(4096, 12),
+                                     nn.Sigmoid())
         
     def forward(self, x, batch_size, mvcnn=True):
         
@@ -97,7 +98,6 @@ class MVCNN(nn.Module):
             output = self.fc1(pooled_view)
         
         else:
-
             x = self.cnn(x)
             x = x.view(-1, 512 * 4* 4)
             output = self.fc2(x)
