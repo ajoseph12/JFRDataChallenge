@@ -1,12 +1,16 @@
-
 """
 Inspiration for the network was taken from the paper on Multi-View CNNS
 Paper : http://vis-www.cs.umass.edu/mvcnn/docs/su15mvcnn.pdf
 Github : https://github.com/RBirkeland/MVCNN-PyTorch
 """
+## Dependencies
+
+import torch
+import torch.nn as nn
+
 class MVCNN(nn.Module):
     
-    def __init__(self, num_classes=None):
+    def __init__(self):
         
         super(MVCNN,self).__init__()
         pad = 1
@@ -73,24 +77,24 @@ class MVCNN(nn.Module):
                                      nn.Linear(4096, 4096),
                                      nn.ReLU(),
                                      nn.Dropout(0.9),
-                                     nn.Linear(4096, num_classes))
+                                     nn.Linear(4096, 2))
         
     def forward(self, x, batch_size, mvcnn=True):
         
         if mvcnn:
+            view_pool = []
             # Assuming x has shape (x, 1, 299, 299)
             for n, v in enumerate(x):
-     
                 v = v.unsqueeze(0)
                 v = self.cnn(v)
                 v = v.view(v.size(0), 512 * 4* 4)
-                
-                if n:
-                    pooled_view = torch.max(pooled_view, v)
-                else:
-                    pooled_view = v.clone()
-                    
-            output = self.fc(pooled_view)
+                view_pool.append(v)
+
+            pooled_view = view_pool[0]
+            for i in range(1, len(view_pool)):
+                pooled_view = torch.max(pooled_view, view_pool[i])
+
+            output = self.fc1(pooled_view)
         
         else:
 
