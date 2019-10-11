@@ -88,7 +88,7 @@ class MVCNN(nn.Module):
             for n, v in enumerate(x):
                 v = v.unsqueeze(0)
                 v = self.cnn(v)
-                v = v.view(v.size(0), 512 * 4* 4)
+                v = v.view(v.size(0), 512 * 4 * 4)
                 view_pool.append(v)
 
             pooled_view = view_pool[0]

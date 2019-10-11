@@ -32,7 +32,7 @@ class SEPGenerator(ImagePreprocess):
         Internal method to get path towards patient dcm files
         """
         patient_id, patient_label = patient_information
-        patient_path = self.base_DatabasePath + '/' + str(patient_id) + '/*.dcm'
+        patient_path =  patient_id + '/*.dcm' #self.base_DatabasePath + '/' + str(patient_id) + '/*.dcm'
 
         patient_dcm_FilePaths = glob.glob(patient_path)
 
@@ -48,6 +48,7 @@ class SEPGenerator(ImagePreprocess):
 
         except exception as e:
             print(e, path)
+            return None
 
 
     def generator(self, patient_InfoDatabase, max_slices=70, dark_matter=0.7, shuffle=True, train=True):
@@ -73,7 +74,6 @@ class SEPGenerator(ImagePreprocess):
             # Get list of patient dcm file paths and respective scores
             # [[p1_01.dmc, ..  p1_99.dcm], p1_label]
             patient_dcm_FilePaths, patient_label 	= self.__get_DCMFilePaths(patient_information)
-
             # Select a random transformation 
             if not train:
                 transformation = 'original'
@@ -92,6 +92,8 @@ class SEPGenerator(ImagePreprocess):
                     continue
 
                 dcm_image 		= self.__extract_DCMImage(patient_dcm_FilePath)			# extract image from .dcm file
+                if dcm_image is None:                                                   # if .dcm file is corrupt
+                    continue
                 preproc_image 	= self.preproc_image(dcm_image)							# preprocess image
                 transform_image = self.transform_images(preproc_image, transformation)	# transform the image
                 image_3D[n]		= transform_image 										# add transformed image to 3D-array

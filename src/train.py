@@ -80,7 +80,7 @@ def training(dataset,
         for t_m, t_item in enumerate(train_generator):
             # Get image and label and pass it through available device 
             image_3D, label = torch.tensor(t_item[0], device=device).float(), torch.tensor(t_item[1], device=device).float()
-            output = mvcnn(image_3D, batch_size, use_mvcnn)                      # Get output from network
+            output = mvcnn(image_3D, batch_size, use_mvcnn)                     # Get output from network
             loss = criterion(output, label)                                     # Get loss
             loss.backward()                                                     # Back-propagate
             optimizer.step()                                                    # Update
@@ -104,7 +104,7 @@ def training(dataset,
 
                 print("Epoch : {} \t | Training Loss : {} \t | Validation Loss : {} ".format(epoch+1, total_TrainLoss/(t_m+1), total_ValidLoss/(v_m+1)) )                   
                 
-                torch.save(mvcnn, model_SavePath + config['backbone'] +'_'+ str(epoch+1) + '.pkl')
+                torch.save(mvcnn, model_SavePath + '/' + config['backbone'] +'_'+ str(epoch+1) + '.pkl')
                 break
          
 
