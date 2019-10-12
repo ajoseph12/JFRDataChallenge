@@ -113,16 +113,17 @@ class SEPGenerator(ImagePreprocess):
 
 
 
-class CcocGenerator(object):
+class CMGenerator(object):
 
     """
-    Creates generator object for COCO images
+    Creates generator object for COCO and MURA images
     """
 
     def __init__(self, 
                  base_path='/media/data/Coco/', 
-                 resize=229, 
-                 batch_size=64):
+                 resize=299, 
+                 batch_size=64,
+                 dataset='COCO'):
         """
         The init method called during class instantiation
         Args:
@@ -134,6 +135,7 @@ class CcocGenerator(object):
         self.resize         = resize
         self.base_path      = base_path
         self.batch_size     = batch_size
+        self.dataset        = dataset
 
 
     def __read_df(self, dataset):
@@ -145,11 +147,28 @@ class CcocGenerator(object):
         - paths     (list)      : list of image paths
         - labels    (nd.array)  : array of labels for corresponding images
         """
+        if self.dataset == 'COCO':
+            ext = '2017.csv'
+            df = pd.read_csv(self.base_path + dataset + ext)
+            paths = df['Paths'].tolist()
+            labels = df.drop(['Paths'], axis=1).values
+
+        elif self.dataset == 'MURA':
+            
+            negative_paths = glob.glob(base_path+dataset+'/negative/*.png')
+            negative_data = [(path, 0) for path in negative_paths]
+            positive_paths = glob.glob(base_path+dataset+'/negative/*.png')
+            positive_data = [(path, 1) for path in negative_paths]
+            all_data = positive_data + negative_data
+            random.shuffle(all_data)
+
+            paths, labels = zip(*all_data)
+            paths = list(paths)
+            labels = np.array(labels)
         
-        df = pd.read_csv(self.base_path + dataset + '2017.csv')
-        paths = df['Paths'].tolist()
-        labels = df.drop(['Paths'], axis=1).values
-        
+        else:
+            raise ValueError("Dataset not recognized : {}".format(dataset))
+
         return paths, labels
 
 
@@ -216,7 +235,12 @@ class CcocGenerator(object):
             
             # Get batch of image paths and their corresponding labels
             batch_paths = paths[itr:itr+self.batch_size]
-            batch_labels = labels[itr:itr+self.batch_size, :]
+            if 'COCO' in self.base_path:
+                batch_labels = labels[itr:itr+self.batch_size, :]
+            elif 'MURA' in self.base_path:
+                batch_labels = labels[itr:itr+self.batch_size]
+            else:
+                raise ValueError("Basepath not recognized : {}".format(self.base_path))
             
             # Create batch array of zeros for image array
             batch_images = np.zeros((len(batch_paths), channels, self.resize, self.resize))
