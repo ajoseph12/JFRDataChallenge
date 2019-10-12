@@ -17,7 +17,7 @@ TRAINING_PARAMS = {
     "classes"           : None,
     "backbone" 			: "vgg", 													# Backbone model to be used by retinanet
     "trainvalsplit"		: 0.9,			                                            # Split between training and validation set
-    "model_SavePath" 	: "../data/trainings/training_1_basemodel", 			    # Path to store snapshots of models during training
+    "model_SavePath" 	: "../data/trainings/training_1_base4", 			    # Path to store snapshots of models during training
     "model_LoadWeights" : None,                                                     # Initialize the model with weights from a file 
     
 

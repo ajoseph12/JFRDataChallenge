@@ -27,20 +27,20 @@ def get_PatientInfo(database_path, split=0.9, shuffle=True, seed=100):
     Get patient id and EDSS score from dataframe
     """
 
-    df_path =  database_path + '/Dataset - 1.xlsx'
+    df_path =   "/home/alex/Dataset 1/"+ 'Dataset - 1.xlsx'
     df = pd.read_excel(df_path, sheet_name='Feuil1')
 
     edss = df['EDSS'].tolist()
     p_id = df['Sequence_id'].tolist()
 
-    patient_InfoDatabase1 = [(database_path+str(p_id[i]), edss[i]) for i in range(df.shape[0])]
+    patient_InfoDatabase1 = [("/home/alex/Dataset 1/"+str(p_id[i]), edss[i]) for i in range(df.shape[0])]
 
-    df_path =  "/home/alex/Dataset2" + '/Dataset - 2.xlsx'
+    df_path =  "/home/alex/Dataset2/" + 'Dataset - 2.xlsx'
     df = pd.read_excel(df_path, sheet_name='Feuil1')
 
     edss = df['EDSS'].tolist()
     p_id = df['Sequence_id'].tolist()
-    
+
     patient_InfoDatabase2 = [("/home/alex/Dataset2/"+str(p_id[i]), edss[i]) for i in range(df.shape[0])]
 
     patient_InfoDatabase = patient_InfoDatabase1 + patient_InfoDatabase2

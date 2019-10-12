@@ -63,13 +63,13 @@ class MVCNN(nn.Module):
                                      nn.ReLU(),
                                      nn.MaxPool2d(2,2))
   
-        self.fc1 = nn.Sequential(nn.Linear(8192, 1024), 
+        self.fc1 = nn.Sequential(nn.Linear(8192, 4096), 
                                      nn.ReLU(),
                                      nn.Dropout(0.8),
-                                     nn.Linear(1024, 96),
+                                     nn.Linear(4096, 4096),
                                      nn.ReLU(),
                                      nn.Dropout(0.9),
-                                     nn.Linear(96, 1))
+                                     nn.Linear(4096, 1))
 
         self.fc2 = nn.Sequential(nn.Linear(8192, 4096), 
                                      nn.ReLU(),
