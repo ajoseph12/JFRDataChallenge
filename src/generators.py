@@ -46,8 +46,8 @@ class SEPGenerator(ImagePreprocess):
             image = dataset.pixel_array					# Exctact image from dcm files 
             return image
 
-        except exception as e:
-            print(e, path)
+        except:
+            print("Path corrupt : {}".format(dcm_path))
             return None
 
 
@@ -94,6 +94,7 @@ class SEPGenerator(ImagePreprocess):
                 dcm_image 		= self.__extract_DCMImage(patient_dcm_FilePath)			# extract image from .dcm file
                 if dcm_image is None:                                                   # if .dcm file is corrupt
                     continue
+                    
                 preproc_image 	= self.preproc_image(dcm_image)							# preprocess image
                 transform_image = self.transform_images(preproc_image, transformation)	# transform the image
                 image_3D[n]		= transform_image 										# add transformed image to 3D-array
