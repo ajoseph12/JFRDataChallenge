@@ -37,7 +37,7 @@ def training(dataset,
     else:
         criterion = nn.BCELoss ()
         print("Loss used \t \t \t : nn.BCELoss")
-    optimizer = optim.Adam(mvcnn.parameters(), lr=lr)                           # Define optimizer
+    optimizer = optim.Adam(mvcnn.parameters(), lr=lr)            # Define optimizer
 
 
     if dataset == 'SEP':
@@ -46,12 +46,12 @@ def training(dataset,
         train_patient_information, valid_patient_information = get_PatientInfo(database_path)
 
         # Create train and valid generators
-        generator_inst = SEPGenerator(database_path, 
+        sep = SEPGenerator(database_path, 
                                         channels=channels,
                                         resize=resize,
                                         normalization=normalization)
-        train_generator = generator_inst.generator(train_patient_information)       
-        valid_generator = generator_inst.generator(valid_patient_information, train=False)
+        train_generator = sep.generator(train_patient_information)       
+        valid_generator = sep.generator(valid_patient_information, train=False)
 
 
     elif dataset == 'COCO':
@@ -60,6 +60,15 @@ def training(dataset,
 
         train_generator = coco.generator(dataset='train', channels=channels)
         valid_generator = coco.generator(dataset='val', channels=channels)
+
+    elif dataset == "MURA":
+
+        mura = CcocGenerator(base_path='/media/data/Coco/', resize=resize, batch_size=batch_size)
+
+        train_generator = coco.generator(dataset='train', channels=channels)
+        valid_generator = coco.generator(dataset='val', channels=channels)
+
+
    
     print("---------- Training has begun ----------")
     print("Learning rate \t \t \t : {}".format(lr))
@@ -80,6 +89,8 @@ def training(dataset,
         for t_m, t_item in enumerate(train_generator):
             # Get image and label and pass it through available device 
             image_3D, label = torch.tensor(t_item[0], device=device).float(), torch.tensor(t_item[1], device=device).float()
+            if image_3D.shape[0] == 0:
+                continue
             output = mvcnn(image_3D, batch_size, use_mvcnn)                     # Get output from network
             loss = criterion(output, label)                                     # Get loss
             loss.backward()                                                     # Back-propagate
@@ -96,6 +107,8 @@ def training(dataset,
                 with torch.no_grad():
                     for v_m, v_item in enumerate(valid_generator):
                         image_3D, label = torch.tensor(v_item[0], device=device).float(), torch.tensor(v_item[1], device=device).float()
+                        if image_3D.shape[0] == 0:
+                            continue
                         output = mvcnn(image_3D, batch_size, use_mvcnn)
                         total_ValidLoss += criterion(output, label)
 
