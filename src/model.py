@@ -12,9 +12,9 @@ import torch.nn.functional as F
 
 class MVCNN(nn.Module):
     
-    def __init__(self):
+    def __init__(self, n_classes):
         
-        super(VGG,self).__init__()
+        super(MVCNN,self).__init__()
         pad = 1
         
         self.cnn = nn.Sequential(nn.BatchNorm2d(1),
@@ -71,15 +71,9 @@ class MVCNN(nn.Module):
                                      nn.Linear(1096, 96),
                                      nn.ReLU(),
                                      nn.Dropout(0.9),
-                                     nn.Linear(96, 1))
+                                     nn.Linear(96, n_classes))
 
-        # self.fc2 = nn.Sequential(nn.Linear(8192, 4096), 
-        #                              nn.ReLU(),
-        #                              nn.Dropout(0.8),
-        #                              nn.Linear(4096, 4096),
-        #                              nn.ReLU(),
-        #                              nn.Dropout(0.9),
-        #                              nn.Linear(4096, 1))
+
         
     def forward(self, x, batch_size, mvcnn=True):
         
@@ -135,7 +129,7 @@ def one_conv(in_channels, padding=0):
 
 class UNetA(nn.Module):
 
-    def __init__(self, n_class):
+    def __init__(self, n_classes):
         super().__init__()
                 
         self.dconv_down1 = double_conv(1, 32)
@@ -172,7 +166,8 @@ class UNetA(nn.Module):
                                      nn.Linear(1096, 96),
                                      nn.ReLU(),
                                      nn.Dropout(0.9),
-                                     nn.Linear(96, 1))
+                                     nn.Linear(96, n_classes),
+                                     nn.Softmax())
         
         
     def forward(self, array, batch_size, mvcnn=True):
@@ -223,7 +218,6 @@ class UNetA(nn.Module):
 
             output = self.fc1(pooled_view)
 
-
         else:
 
             conv1 = self.dconv_down1(array) # 1 -> 32 filters
@@ -265,7 +259,7 @@ class UNetA(nn.Module):
 
 class UNet(nn.Module):
 
-    def __init__(self, n_class=1):
+    def __init__(self):
         super().__init__()
                 
         self.dconv_down1 = double_conv(1, 32)
@@ -295,7 +289,7 @@ class UNet(nn.Module):
                                      nn.Linear(1096, 96),
                                      nn.ReLU(),
                                      nn.Dropout(0.9),
-                                     nn.Linear(96, 1))
+                                     nn.Linear(96, 20))
         
         
     def forward(self, array, batch_size, mvcnn=True):

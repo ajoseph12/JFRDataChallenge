@@ -1,7 +1,7 @@
 TRAINING_PARAMS = {
     # Hyper-parameters
     "lr"				: 1e-4,			# Learning rate during trainnig.
-    "epochs"			: 20,			# Number of training epochs
+    "epochs"			: 5,			# Number of training epochs
     "batch_size"        : 1,           # Image batches per iteration
     "train_iterations"	: 9000,		    # Number of steps to be taken per epoch 
     "valid_iterations"  : 100,           # Number of steps to be taken during validation
@@ -14,17 +14,17 @@ TRAINING_PARAMS = {
    
 
     # Model Parameters
-    "classes"           : None,
+    "classes"           : 18,
     "backbone" 			: "vgg", 													# Backbone model to be used by retinanet
     "trainvalsplit"		: 0.9,			                                            # Split between training and validation set
-    "model_SavePath" 	: "../data/trainings/train_mimic", 			                # Path to store snapshots of models during training
-    "model_LoadWeights" : "../data/trainings/pretrain_mimic/vgg_2.pkl",             # Initialize the model with weights from a file 
+    "model_SavePath" 	: "../data/trainings/train_VGG_class", 			        # Path to store snapshots of models during training
+    "model_LoadWeights" : None,                                                     # Initialize the model with weights from a file 
     
 
     # Msc Parameters
     "dataset"           : "SEP",                                                    # Dataset to train on
-    "database_path"     : "home/alex/Dataset 1/",                               # Path towards the training data
-    "use_mvcnn"         : True                                     
+    "database_path"     : "home/alex/Dataset 1/",                                   # Path towards the training data
+    "use_mvcnn"         : True                                                      # Path towards saved weigths                         
 }
 
 """

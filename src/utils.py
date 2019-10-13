@@ -21,38 +21,48 @@ def create_dir(dir_path):
         print("Model save directory already exists")
 
 
-def get_PatientInfo(database_path, split=0.9, shuffle=True, seed=100):
+def get_PatientInfo(database_path, split=0.9, shuffle=True, seed=100, test=False):
 
     """
     Get patient id and EDSS score from dataframe
     """
+    if not test:
+        df_path =   "/home/alex/Dataset 1/"+ 'Dataset - 1.xlsx'
+        df = pd.read_excel(df_path, sheet_name='Feuil1')
 
-    df_path =   "/home/alex/Dataset 1/"+ 'Dataset - 1.xlsx'
-    df = pd.read_excel(df_path, sheet_name='Feuil1')
+        edss = df['EDSS'].tolist()
+        p_id = df['Sequence_id'].tolist()
 
-    edss = df['EDSS'].tolist()
-    p_id = df['Sequence_id'].tolist()
+        patient_InfoDatabase1 = [("/home/alex/Dataset 1/"+str(p_id[i]), edss[i]) for i in range(df.shape[0])]
 
-    patient_InfoDatabase1 = [("/home/alex/Dataset 1/"+str(p_id[i]), edss[i]) for i in range(df.shape[0])]
+        df_path =  "/home/alex/Dataset2/" + 'Dataset - 2.xlsx'
+        df = pd.read_excel(df_path, sheet_name='Feuil1')
 
-    df_path =  "/home/alex/Dataset2/" + 'Dataset - 2.xlsx'
-    df = pd.read_excel(df_path, sheet_name='Feuil1')
+        edss = df['EDSS'].tolist()
+        p_id = df['Sequence_id'].tolist()
 
-    edss = df['EDSS'].tolist()
-    p_id = df['Sequence_id'].tolist()
+        patient_InfoDatabase2 = [("/home/alex/Dataset2/"+str(p_id[i]), edss[i]) for i in range(df.shape[0])]
 
-    patient_InfoDatabase2 = [("/home/alex/Dataset2/"+str(p_id[i]), edss[i]) for i in range(df.shape[0])]
+        patient_InfoDatabase = patient_InfoDatabase1 + patient_InfoDatabase2
 
-    patient_InfoDatabase = patient_InfoDatabase1 + patient_InfoDatabase2
+        if shuffle:
+                random.seed(seed)
+                random.shuffle(patient_InfoDatabase)
+                
+        train_patient_information = patient_InfoDatabase[:int(split*len(patient_InfoDatabase))]
+        valid_patient_information = patient_InfoDatabase[int(split*len(patient_InfoDatabase)):]
 
-    if shuffle:
-            random.seed(seed)
-            random.shuffle(patient_InfoDatabase)
-            
-    train_patient_information = patient_InfoDatabase[:int(split*len(patient_InfoDatabase))]
-    valid_patient_information = patient_InfoDatabase[int(split*len(patient_InfoDatabase)):]
+        return train_patient_information, valid_patient_information
 
-    return train_patient_information, valid_patient_information
+    else:
+        
+        df_path =   database_path + 'Dataset - 3.xlsx'
+        df = pd.read_excel(df_path, sheet_name='Feuil1')
+        
+        p_id = df['Sequence_id'].tolist()
+        patient_InfoDatabase = [(database_path+str(p_id[i]), str(p_id[i])) for i in range(df.shape[0])]
+        return patient_InfoDatabase
+
 
 
 class ImagePreprocess(object):

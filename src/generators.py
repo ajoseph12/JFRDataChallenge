@@ -27,16 +27,23 @@ class SEPGenerator(ImagePreprocess):
         
         super().__init__(**kwargs)
 
-    def __get_DCMFilePaths(self, patient_information):
+    def __get_DCMFilePaths(self, patient_information, dataset):
         """
         Internal method to get path towards patient dcm files
         """
-        patient_id, patient_label = patient_information
-        patient_path =  patient_id + '/*.dcm' #self.base_DatabasePath + '/' + str(patient_id) + '/*.dcm'
+        if dataset != 'test':
+            patient_id, patient_label = patient_information
+            patient_path =  patient_id + '/*.dcm' 
+            patient_dcm_FilePaths = glob.glob(patient_path)
 
-        patient_dcm_FilePaths = glob.glob(patient_path)
+            return patient_dcm_FilePaths, patient_label
 
-        return patient_dcm_FilePaths, patient_label
+        else:
+            patient_id, p_id = patient_information
+            patient_path =  patient_id + '/*.dcm' #self.base_DatabasePath + '/' + str(patient_id) + '/*.dcm'
+            patient_dcm_FilePaths = glob.glob(patient_path)
+
+            return patient_dcm_FilePaths, p_id
 
 
     def __extract_DCMImage(self, dcm_path):
@@ -51,7 +58,7 @@ class SEPGenerator(ImagePreprocess):
             return None
 
 
-    def generator(self, patient_InfoDatabase, max_slices=70, dark_matter=0.7, shuffle=True, train=True):
+    def generator(self, patient_InfoDatabase, max_slices=70, dark_matter=0.7, shuffle=True, dataset='train'):
 
         """
         Args:
@@ -66,19 +73,36 @@ class SEPGenerator(ImagePreprocess):
 
         itr = 0
         limit = len(patient_InfoDatabase)
+        keys = {0.0: 0,
+                1.0: 1,
+                1.5: 2,
+                2.0: 3,
+                2.5: 4,
+                3.0: 5,
+                3.5: 6,
+                4.0: 7,
+                4.5: 8,
+                5.0: 9,
+                5.5: 10,
+                6.0: 11,
+                6.5: 12,
+                7.0: 13,
+                7.5: 14,
+                8.0: 15,
+                8.5: 16,
+                9.0: 17}
 
         while True:
             
             patient_information = patient_InfoDatabase[itr]
-            #print("Iteration : {} | {}".format(itr, patient_information))
             # Get list of patient dcm file paths and respective scores
             # [[p1_01.dmc, ..  p1_99.dcm], p1_label]
-            patient_dcm_FilePaths, patient_label 	= self.__get_DCMFilePaths(patient_information)
+            patient_dcm_FilePaths, patient_label 	= self.__get_DCMFilePaths(patient_information, dataset)
             # Select a random transformation 
-            if not train:
-                transformation = 'original'
-            else:
+            if dataset == 'train':
                 transformation = random.choice(['original', 'flip_v', 'flip_h', 'flip_vh', 'rot_c', 'rot_ac'])
+            else:
+                transformation = 'original'
             
             # Create array of zeors # (x, 1, 299, 299) --> (slices, channels, height, width)
             darkmatter_idx 	= []
@@ -103,7 +127,7 @@ class SEPGenerator(ImagePreprocess):
 
             relevant_idx = [item[1] for item in sorted(darkmatter_idx)][:max_slices]    # get relevant slices
 
-            yield image_3D[relevant_idx], np.array(patient_label)
+            yield image_3D[relevant_idx], np.array([keys[patient_label]])
 
             itr += 1
 
