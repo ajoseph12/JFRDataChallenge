@@ -113,7 +113,7 @@ class SEPGenerator(ImagePreprocess):
 
 
 
-class CMGenerator(object):
+class CMGenerator(ImagePreprocess):
 
     """
     Creates generator object for COCO and MURA images
@@ -155,16 +155,19 @@ class CMGenerator(object):
 
         elif self.dataset == 'MURA':
             
-            negative_paths = glob.glob(base_path+dataset+'/negative/*.png')
+            negative_paths = glob.glob(self.base_path+dataset+'/negative/*.png')
             negative_data = [(path, 0) for path in negative_paths]
-            positive_paths = glob.glob(base_path+dataset+'/negative/*.png')
+            positive_paths = glob.glob(self.base_path+dataset+'/negative/*.png')
             positive_data = [(path, 1) for path in negative_paths]
             all_data = positive_data + negative_data
             random.shuffle(all_data)
 
             paths, labels = zip(*all_data)
             paths = list(paths)
-            labels = np.array(labels)
+            labels = np.array(labels, dtype=int)
+            # label_onehot = np.zeros((len(labels), 2))
+            # label_onehot[np.arange(len(labels)), labels] = 1
+
         
         else:
             raise ValueError("Dataset not recognized : {}".format(dataset))
@@ -232,6 +235,11 @@ class CMGenerator(object):
         # Used while loop instead of for loop beacause keras fit_generator
         # thows stop iteration exception with for loop
         while True: 
+
+            if dataset == 'valid':
+                transformation = 'original'
+            else:
+                transformation = random.choice(['original', 'flip_v', 'flip_h', 'flip_vh', 'rot_c', 'rot_ac'])
             
             # Get batch of image paths and their corresponding labels
             batch_paths = paths[itr:itr+self.batch_size]
@@ -249,6 +257,7 @@ class CMGenerator(object):
                 
                 temp_image = self.__read_image(path, channels)
                 temp_image = self.__image_preproc(temp_image)
+                temp_image = self.transform_images(temp_image, transformation)
                 
                 if len(temp_image.shape) == 2:
                     temp_image = np.resize(temp_image, (1, temp_image.shape[0], 
@@ -257,6 +266,166 @@ class CMGenerator(object):
                 batch_images[n] = temp_image
 
             yield batch_images, batch_labels
+            
+            itr += self.batch_size
+            step += 1
+
+            if step == steps:
+                itr = 0
+                step = 0
+
+
+
+class MIMIC_generator(ImagePreprocess):
+    
+    """
+    Creates generator object for MIMIC images
+    """
+    
+    def __init__(self,
+                 resize,
+                 batch_size,
+                 base_path='/media/data/chest_dataset/'):
+    
+        """
+        The init method is called during class instantiation 
+        
+        Args:
+        - resize        (int) : size to which the images ought to be resized
+        - batch_size    (int) : size of the batches with which images will be fed
+        - base_path     (str) : the source directory of the dataset
+        """
+
+        self.resize         = resize
+        self.base_path      = base_path
+        self.batch_size     = batch_size 
+
+
+    def __read_df(self, dataset):
+
+        """
+        The method is used to read csv file and extract paths and labels
+
+        Args:
+        - dataset       (str)       : string indicating train or validation csv file
+
+        Returns:
+        - image_paths   (nd.array)  : array of image paths
+        - labels        (nd.array)  : one-hot array representation of labels
+        """
+
+        df          = pd.read_csv(self.base_path + dataset + '.csv')
+        df.fillna(0,inplace=True)
+        
+        image_paths = df['path'].values
+        labels      = pd.get_dummies(df['No Finding']).values
+
+        return image_paths, labels
+
+
+    def __read_image(self, image_path, channels):
+        """
+        The method reads an image given its path
+
+        Args:
+        - image_path    (str)       : path of the image file
+        - channels      (int)       : number of channels the read image should have
+
+        Returns:
+        - image         (nd.array)  : array representing image pixels
+        """
+        if channels == 3:
+            image = cv2.imread(image_path)
+
+        elif channels == 1:
+            image = cv2.imread(image_path, 0)
+
+        else:
+            raise ValueError("Channel value not supported : {}".format(channels))
+
+        return image
+
+
+    def __image_preprocess(self, image):
+
+        """
+        The method performs required preprocessing on the image
+        Args:
+        - image     (nd.array)  : array representing image pixels
+        Returns
+        - image     (nd.array)  : image array that underwent preprocessing
+        """
+    
+        # image resizing
+        image = cv2.resize(image, (self.resize, self.resize))
+        # min-max normalization 
+        image = np.float32((image - np.min(image))/(0.00001+(np.max(image) - np.min(image))))
+        
+        return image
+
+
+    def labels(self, dataset):
+        _, labels = self.__read_df(dataset)
+        return labels
+
+
+
+    def generator(self, dataset, channels=1, steps_per_epoch=None):
+
+        """
+        This method yields the data in batches
+        Args:
+        - dataset           (str) : string indicating target dataset (train/valid)
+        - channels          (int) : number of channels images in the dataset has
+        - steps_per_epoch   (int) : steps to be taken per epoch, set to None by default
+        Yields:
+        - batch_images  (nd.array) : a batch of images of shape (batch_size, rows, cols, channesl)
+        - batch_labels  (nd,array) : a batch of labels of shape (batch_size, classes)
+        """
+
+        ori_image_paths, ori_labels = self.__read_df(dataset)
+        if not steps_per_epoch:
+            steps = int(len(ori_image_paths)/self.batch_size)
+        else:
+            steps = steps_per_epoch
+
+        # Intialization to keep track of generator
+        itr         = 0
+        step        = 0
+        image_paths = ori_image_paths # to preserve the original order of elements
+        labels      = ori_labels
+            
+        # Iterate through batches 
+        # Used while loop instead of for loop beacause keras fit_generator
+        # thows stop iteration exception with for loop
+        while True: 
+            
+            if dataset == 'valid':
+                transformation = 'original'
+            else:
+                transformation = random.choice(['original', 'flip_v', 'flip_h', 'flip_vh', 'rot_c', 'rot_ac'])
+
+            # Get batch of image paths and their corresponding labels
+            batch_paths     = image_paths[itr:itr+self.batch_size]
+            batch_labels    = labels[itr:itr+self.batch_size]
+            
+            # Create batch array of zeros for image array
+            batch_images = np.zeros((len(batch_paths), channels, self.resize, self.resize))
+            
+            for n, path in enumerate(batch_paths):
+                
+                temp_image = self.__read_image(self.base_path + path, channels)
+                temp_image = self.__image_preprocess(temp_image)
+                temp_image = self.transform_images(temp_image, transformation)
+                
+                if len(temp_image.shape) == 2:
+                    temp_image = np.resize(temp_image, (1, temp_image.shape[0], 
+                                                        temp_image.shape[1]))
+                
+                batch_images[n] = temp_image
+                
+            batch_labels_oe = np.array([np.where(r==1)[0][0] for r in batch_labels])
+            yield batch_images, batch_labels_oe
             
             itr += self.batch_size
             step += 1
