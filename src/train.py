@@ -30,18 +30,22 @@ def training(dataset,
             ):
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")     # Check available device (GPU|CPU)
-    mvcnn = MVCNN().to(device)                                                  # Instantiate network and aassign network to it
+    if model_LoadWeights:
+       mvcnn = torch.load(model_LoadWeights)
+    else:
+        mvcnn = MVCNN().to(device)                                                  # Instantiate network and aassign network to it
+    
     if not classes:
         criterion = nn.MSELoss()                                                # Define loss
         print("Loss used \t \t \t : MSELoss")
     else:
-        criterion = nn.BCELoss ()
+        criterion = nn.BCELoss() # nn.CrossEntropyLoss() 
         print("Loss used \t \t \t : nn.BCELoss")
     optimizer = optim.Adam(mvcnn.parameters(), lr=lr)            # Define optimizer
 
 
     if dataset == 'SEP':
-        
+
         # Get train and valid patient information 
         train_patient_information, valid_patient_information = get_PatientInfo(database_path)
 
@@ -56,17 +60,27 @@ def training(dataset,
 
     elif dataset == 'COCO':
         
-        coco = CcocGenerator(base_path='/media/data/Coco/', resize=resize, batch_size=batch_size)
+        coco = CMGenerator(base_path='/media/data/Coco/', resize=resize, batch_size=batch_size)
 
         train_generator = coco.generator(dataset='train', channels=channels)
         valid_generator = coco.generator(dataset='val', channels=channels)
 
     elif dataset == "MURA":
 
-        mura = CcocGenerator(base_path='/media/data/Coco/', resize=resize, batch_size=batch_size)
+        mura = CMGenerator(base_path='/home/allwyn/MURA/', resize=resize, batch_size=batch_size, dataset=dataset)
 
-        train_generator = coco.generator(dataset='train', channels=channels)
-        valid_generator = coco.generator(dataset='val', channels=channels)
+        train_generator = mura.generator(dataset='train', channels=channels)
+        valid_generator = mura.generator(dataset='valid', channels=channels)
+
+    elif dataset == "MIMIC":
+
+        mimic = MIMIC_generator(base_path='/media/data/chest_dataset/', resize=resize, batch_size=batch_size)
+
+        train_generator = mimic.generator(dataset='train')
+        valid_generator = mimic.generator(dataset='valid')
+    
+    else:
+        raise ValueError("Dataset not recognized : {}".format(dataset))
 
 
    
