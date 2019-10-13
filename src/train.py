@@ -30,18 +30,19 @@ def training(dataset,
             ):
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")     # Check available device (GPU|CPU)
+
+    score_freq = [212, 124, 46, 139, 26, 82, 33, 113, 24, 28, 14, 58, 42, 15, 6, 6, 1,2]
+    weights = [round(max(score_freq)/item,2) for item in score_freq]
+    class_weights = torch.FloatTensor(weights).to(device)
+
     if model_LoadWeights:
        mvcnn = torch.load(model_LoadWeights)
     else:
-        mvcnn = MVCNN().to(device)                                                  # Instantiate network and aassign network to it
+        mvcnn = MVCNN(classes).to(device)                              # Instantiate network and aassign network to it
     
-    if not classes:
-        criterion = nn.MSELoss()                                                # Define loss
-        print("Loss used \t \t \t : MSELoss")
-    else:
-        criterion = nn.BCELoss() # nn.CrossEntropyLoss() 
-        print("Loss used \t \t \t : nn.BCELoss")
-    optimizer = optim.Adam(mvcnn.parameters(), lr=lr)            # Define optimizer
+    criterion =  nn.CrossEntropyLoss(weight=class_weights)      # Define loss  
+    print("Loss used \t \t \t : nn.CrossEntropyLoss")
+    optimizer = optim.Adam(mvcnn.parameters(), lr=lr)           # Define optimizer
 
 
     if dataset == 'SEP':
@@ -54,8 +55,8 @@ def training(dataset,
                                         channels=channels,
                                         resize=resize,
                                         normalization=normalization)
-        train_generator = sep.generator(train_patient_information)       
-        valid_generator = sep.generator(valid_patient_information, train=False)
+        train_generator = sep.generator(train_patient_information, dataset='train')       
+        valid_generator = sep.generator(valid_patient_information, dataset='valid')
 
 
     elif dataset == 'COCO':
@@ -102,7 +103,7 @@ def training(dataset,
 
         for t_m, t_item in enumerate(train_generator):
             # Get image and label and pass it through available device 
-            image_3D, label = torch.tensor(t_item[0], device=device).float(), torch.tensor(t_item[1], device=device).float()
+            image_3D, label = torch.tensor(t_item[0], device=device).float(), torch.tensor(t_item[1], device=device)
             if image_3D.shape[0] == 0:
                 continue
             output = mvcnn(image_3D, batch_size, use_mvcnn)                     # Get output from network
