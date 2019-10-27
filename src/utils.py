@@ -21,13 +21,14 @@ def create_dir(dir_path):
         print("Model save directory already exists")
 
 
-def get_PatientInfo(database_path, split=0.9, shuffle=True, seed=100, test=False):
+def get_PatientInfo(database_path='/home/alex', split=0.9, shuffle=True, seed=100, test=False):
 
     """
     Get patient id and EDSS score from dataframe
     """
+    # Get patient id and EDSS score for training and validation
     if not test:
-        df_path =   "/home/alex/Dataset 1/"+ 'Dataset - 1.xlsx'
+        df_path =   database_path + "/Dataset 1/Dataset - 1.xlsx"
         df = pd.read_excel(df_path, sheet_name='Feuil1')
 
         edss = df['EDSS'].tolist()
@@ -35,7 +36,7 @@ def get_PatientInfo(database_path, split=0.9, shuffle=True, seed=100, test=False
 
         patient_InfoDatabase1 = [("/home/alex/Dataset 1/"+str(p_id[i]), edss[i]) for i in range(df.shape[0])]
 
-        df_path =  "/home/alex/Dataset2/" + 'Dataset - 2.xlsx'
+        df_path =  database_path + "Dataset2/Dataset - 2.xlsx"
         df = pd.read_excel(df_path, sheet_name='Feuil1')
 
         edss = df['EDSS'].tolist()
@@ -55,8 +56,8 @@ def get_PatientInfo(database_path, split=0.9, shuffle=True, seed=100, test=False
         return train_patient_information, valid_patient_information
 
     else:
-        
-        df_path =   database_path + 'Dataset - 3.xlsx'
+        # Get patient ID for testing
+        df_path =   database_path + 'Dataset3/Dataset - 3.xlsx'
         df = pd.read_excel(df_path, sheet_name='Feuil1')
         
         p_id = df['Sequence_id'].tolist()
@@ -114,7 +115,7 @@ class ImagePreprocess(object):
         Args:
         - image             (nd.array)  : input image array
         - transformation    (str)       : image transformation to be effectuated
-        - angle 		(int)	    : rotation angle if transformation is a rotation
+        - angle 		    (int)	    : rotation angle if transformation is a rotation
         Returns:
         - trans_image       (nd.array)  : transformed image array
         """

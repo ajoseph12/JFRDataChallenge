@@ -1,16 +1,21 @@
-"""
-Create .csv file with outputs from the model for corresponding patients
-"""
-
+# Dependencies
 import csv
 import torch
 import torch.nn as nn
 import torch.optim as optim
 
 
-def main(channels, resize, normalization, database_path, model_LoadWeights, csv_file):
+def main(channels, resize, normalization, database_path, model_LoadWeights, output_csv_file):
     """
-    Inferencing 
+    Create .csv file with outputs from the model for corresponding patients 
+
+    Args:
+    - channels              (int) : grayscale of RBG images
+    - resize                (int) : square resize of image (resize x resize)
+    - normalization         (str) : type of normalization to use (min-max/mean-var)
+    - database_path         (str) : path towards the test dataset
+    - model_LoadWeights     (str) : path towards the saved model
+    - output_csv_file       (str) : path/name.csv of model ouput
     """
 
     keys = {0: 0.0,
@@ -64,7 +69,7 @@ def main(channels, resize, normalization, database_path, model_LoadWeights, csv_
 
     # Create and save a .csv file
     csvData = [["Sequence_id"],["EDSS"]] + list(map(lambda a : [int(a[0]), keys[np.argmax(a[1])]], (final)))
-    with open(csv_file, 'w') as csvFile:
+    with open(output_csv_file, 'w') as csvFile:
         writer = csv.writer(csvFile)
         writer.writerows(csvData)
     csvFile.close()
@@ -78,7 +83,7 @@ if if __name__ == "__main__":
     database_path = '/home/alex/Dataset3/'
     model_LoadWeights = None
     
-    csv_file = 'AZmed_Unet.csv'
+    output_csv_file = 'AZmed_Unet.csv'
 
     
-    main(channels, resize, normalization, database_path, model_LoadWeights, csv_file)
+    main(channels, resize, normalization, database_path, model_LoadWeights, output_csv_file)

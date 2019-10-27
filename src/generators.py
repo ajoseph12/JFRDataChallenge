@@ -58,12 +58,18 @@ class SEPGenerator(ImagePreprocess):
             return None
 
 
-    def generator(self, patient_InfoDatabase, max_slices=45, dark_matter=0.7, shuffle=True, dataset='train'):
+    def generator(self, patient_InfoDatabase, 
+                        transformations='original',
+                        max_slices=45, 
+                        dark_matter=0.7, 
+                        shuffle=True,
+                        dataset='train'):
 
         """
         Args:
         - patient_InfoDatabase	(list)      : list of tuples : (patient_id, patient_edss_score) 
-        - max_slices	        (int)       : number of allowed slices per patient
+        - max_slices	        (int)       : number of allowed slices per patient (to be adjusted 
+                                              depending on GPU capacity)
         - dark_matter 	        (int)       : ratio of dark matter accepted in an image
 
         Yields:
@@ -100,9 +106,9 @@ class SEPGenerator(ImagePreprocess):
             patient_dcm_FilePaths, patient_label 	= self.__get_DCMFilePaths(patient_information, dataset)
             # Select a random transformation 
             if dataset == 'train':
-                transformation = 'original'#random.choice(['original', 'flip_v', 'flip_h', 'flip_vh', 'rot_c', 'rot_ac'])
+                transformation = random.choice(transformations)
             else:
-                transformation = 'original'
+                transformation = transformations
             
             # Create array of zeors # (x, 1, 299, 299) --> (slices, channels, height, width)
             darkmatter_idx 	= []
@@ -236,7 +242,7 @@ class CMGenerator(ImagePreprocess):
         return image
 
 
-    def generator(self, dataset, channels=3):
+    def generator(self, dataset, transformations='original', channels=3):
         """
         Method that returns a generator object
         Args:
@@ -255,14 +261,12 @@ class CMGenerator(ImagePreprocess):
         step = 0
             
         # Iterate through batches 
-        # Used while loop instead of for loop beacause keras fit_generator
-        # thows stop iteration exception with for loop
         while True: 
 
             if dataset == 'valid':
-                transformation = 'original'
+                transformation = transformations
             else:
-                transformation = random.choice(['original', 'flip_v', 'flip_h', 'flip_vh', 'rot_c', 'rot_ac'])
+                transformation = random.choice(transformations)
             
             # Get batch of image paths and their corresponding labels
             batch_paths = paths[itr:itr+self.batch_size]
@@ -393,7 +397,7 @@ class MIMIC_generator(ImagePreprocess):
 
 
 
-    def generator(self, dataset, channels=1, steps_per_epoch=None):
+    def generator(self, dataset, transformations='original', channels=1, steps_per_epoch=None):
 
         """
         This method yields the data in batches
@@ -424,9 +428,9 @@ class MIMIC_generator(ImagePreprocess):
         while True: 
             
             if dataset == 'valid':
-                transformation = 'original'
+                transformation = transformations
             else:
-                transformation = random.choice(['original', 'flip_v', 'flip_h', 'flip_vh', 'rot_c', 'rot_ac'])
+                transformation = random.choice(transformations)
 
             # Get batch of image paths and their corresponding labels
             batch_paths     = image_paths[itr:itr+self.batch_size]

@@ -16,6 +16,7 @@ def training(dataset,
                 resize,
                 channels,
                 normalization,
+                transformations,
                 lr,
                 epochs,
                 batch_size,
@@ -29,6 +30,11 @@ def training(dataset,
                 model_LoadWeights,
                 use_mvcnn
             ):
+    """
+    Function that begin trainig:
+
+    Please check "train_config.py" file for parameter significance
+    """
 
     # Check available device (GPU|CPU)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")    
@@ -48,16 +54,16 @@ def training(dataset,
     else:
         # Use a modified VGG as the backbone
         if backbone_type == 'VGGM':
-            mvcnn = VGG(classes).to(device) 
+            mvcnn = VGGM(classes).to(device) 
         # Use a classical UNet as the backbone
         elif backbone_type == 'UNET':
             mvcnn = UNet(classes).to(device) 
         # Use UNet along with attention as backbone
         # more info : https://arxiv.org/pdf/1804.03999.pdf
-        else backbone_type == 'UNetA':
+        elif backbone_type == 'UNetA':
             mvcnn = UNetA(classes).to(device) 
         else:
-            raise ValueError("Backbone not recognized : {}").format(backbone_type))
+            raise ValueError("Backbone not recognized : {}".format(backbone_type))
                                      
     # Define loss  and compile model with optimizer
     criterion =  nn.CrossEntropyLoss(weight=class_weights)      
@@ -75,28 +81,28 @@ def training(dataset,
                                         channels=channels,
                                         resize=resize,
                                         normalization=normalization)
-        train_generator = sep.generator(train_patient_information, dataset='train')       
+        train_generator = sep.generator(train_patient_information, transformations=transformations, dataset='train')       
         valid_generator = sep.generator(valid_patient_information, dataset='valid')
 
     elif dataset == 'COCO':
         
         coco = CMGenerator(base_path='/media/data/Coco/', resize=resize, batch_size=batch_size)
 
-        train_generator = coco.generator(dataset='train', channels=channels)
+        train_generator = coco.generator(dataset='train', transformations=transformations, channels=channels)
         valid_generator = coco.generator(dataset='val', channels=channels)
 
     elif dataset == "MURA":
 
         mura = CMGenerator(base_path='/home/allwyn/MURA/', resize=resize, batch_size=batch_size, dataset=dataset)
 
-        train_generator = mura.generator(dataset='train', channels=channels)
+        train_generator = mura.generator(dataset='train', transformations=transformations, channels=channels)
         valid_generator = mura.generator(dataset='valid', channels=channels)
 
     elif dataset == "MIMIC":
 
         mimic = MIMIC_generator(base_path='/media/data/chest_dataset/', resize=resize, batch_size=batch_size)
 
-        train_generator = mimic.generator(dataset='train')
+        train_generator = mimic.generator(dataset='train', transformations=transformations)
         valid_generator = mimic.generator(dataset='valid')
     
     else:
@@ -112,13 +118,13 @@ def training(dataset,
     print("Train validation split \t  \t : {}".format(trainvalsplit))
     print("Number of epochs \t \t : {}".format(epochs))
     print("Training dataset \t \t : {}".format(dataset))
-    print("Backbone used \t \t : {}".format(backbone_type))
+    print("Backbone used \t \t \t : {}".format(backbone_type))
     print("Loading models \t \t \t : {}".format(model_LoadWeights))
     print("Path to save models \t \t : {}".format(model_SavePath))
 
     create_dir(model_SavePath)
 
-
+    print("Training has begun ........")
     for epoch in range(epochs):
         total_TrainLoss = 0
 
@@ -167,6 +173,7 @@ if __name__ == '__main__':
                 resize=config['resize'],
                 channels=config['channels'],
                 normalization=config['normalization'],
+                transformations=config["transformations"],
                 lr=config['lr'],
                 epochs=config['epochs'],
                 batch_size=config['batch_size'],

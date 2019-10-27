@@ -1,8 +1,4 @@
-"""
-Inspiration for the network was taken from the paper on Multi-View CNNS
-Paper : http://vis-www.cs.umass.edu/mvcnn/docs/su15mvcnn.pdf
-Github : https://github.com/RBirkeland/MVCNN-PyTorch
-"""
+
 ## Dependencies
 
 import torch
@@ -11,6 +7,12 @@ import torch.nn.functional as F
 
 
 class VGGM(nn.Module):
+    """
+    Modified VGG (thinner and shallower) backbone 
+    with multi-view cnns 
+    paper : http://vis-www.cs.umass.edu/mvcnn/docs/su15mvcnn.pdf
+    code : https://github.com/RBirkeland/MVCNN-PyTorch
+    """
     
     def __init__(self, n_classes):
         
@@ -139,6 +141,11 @@ def one_conv(in_channels, padding=0):
 
 
 class UNetA(nn.Module):
+    """
+    Classical UNet backbone with Attention and 
+    Multi-view cnn
+    paper on attention : https://arxiv.org/pdf/1804.03999.pdf
+    """
 
     def __init__(self, n_classes):
         super().__init__()
@@ -185,9 +192,11 @@ class UNetA(nn.Module):
 
         if mvcnn:
             view_pool = []
+
             for n, x in enumerate(array):
-                #print(array.shape)
+                
                 x = x.unsqueeze(0)
+
                 conv1 = self.dconv_down1(x) # 1 -> 32 filters
                 x = self.maxpool(conv1)
 
