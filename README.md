@@ -18,7 +18,13 @@ To tackle this task I took inspiration from Hang Tu's et al. [work](http://vis-w
 
 As for the backbone for the MVCNN, I tried using a modified version of the VGG, vanilla UNet and Unet with attention based on the [work](https://arxiv.org/pdf/1804.03999.pdf) by Ozan Oktay et al.
 
+Check "src/train_config.py" file for training details.
 
-## Further 
+Resutls were unfortunately not too great : MSE = 4.3. MSE was used to evaluate the submissions.
+
+## What next ?
+- Need to try running the model on emperical data in combination with image data
+- Need to try other networks or even other techniques to analyse MRI images
+
 
 
