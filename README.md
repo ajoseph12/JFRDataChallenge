@@ -11,11 +11,14 @@ The EDSS (Expanded Disability Status Scale) remains the main clinical rating too
 The obejective of the challenge was to create a ML/DL model that is capable of predicting the EDSS score of a given patient two years from now.
 
 ## The Data
-The data contains 1461 MRI examinations (3D Flair and axial T2 Flair) with the EDSS score two years for  2 years (+/- 9 months) from the date of the exam. The MRIs were gathered from over 703 patients. Thus, the same patient may have several MRIs on different dates. The datasets can contain 3D Flair or T2 Flair axial examinations.
+The data contains 1461 MRI examinations (3D Flair and axial T2 Flair, number of images per scan are bound to vary) with the EDSS score two years for  2 years (+/- 9 months) from the date of the exam. The MRIs were gathered from over 703 patients. Thus, the same patient may have several MRIs on different dates. The datasets can contain 3D Flair or T2 Flair axial examinations.
 
 ## Deep Learning
-To tackle this task I took inspiration from 
+To tackle this task I took inspiration from Hang Tu's et al. [work](http://vis-www.cs.umass.edu/mvcnn/docs/su15mvcnn.pdf) on Multi-View CNNs (MVCNNs). Using MVCNNs I sought to analyse 3D MRI scans, extacting only the necessary information from each scan while discarding the rest. This was followed by effectuating a prediction on the extacted freatures. 
 
-## Resources
+As for the backbone for the MVCNN, I tried using a modified version of the VGG, vanilla UNet and Unet with attention based on the [work](https://arxiv.org/pdf/1804.03999.pdf) by Ozan Oktay et al.
+
+
+## Further 
 
 
