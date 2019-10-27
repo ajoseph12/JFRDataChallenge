@@ -10,11 +10,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class MVCNN(nn.Module):
+class VGGM(nn.Module):
     
     def __init__(self, n_classes):
         
-        super(MVCNN,self).__init__()
+        super(VGGM,self).__init__()
         pad = 1
         
         self.cnn = nn.Sequential(nn.BatchNorm2d(1),
@@ -102,7 +102,10 @@ class MVCNN(nn.Module):
 
 
 def attention_block():
-    
+    """
+    Pass the summation of gating signal and 
+    conv feature map to this module
+    """
     return nn.Sequential(
         nn.ReLU(),
         nn.Conv2d(1, 1, 1, padding=0),
@@ -112,6 +115,10 @@ def attention_block():
 
 
 def double_conv(in_channels, out_channels):
+    """
+    Apply convolution twice to incoming feature map
+    and normalize 
+    """
     return nn.Sequential(
         nn.BatchNorm2d(in_channels),
         nn.Conv2d(in_channels, out_channels, 3, padding=1),
@@ -122,6 +129,10 @@ def double_conv(in_channels, out_channels):
 
 
 def one_conv(in_channels, padding=0):
+    """
+    Apply 1x1 convolution to incoming feature map
+    and normalize
+    """
     return nn.Sequential(
         nn.BatchNorm2d(in_channels),
         nn.Conv2d(in_channels, 1, 1, padding=padding))

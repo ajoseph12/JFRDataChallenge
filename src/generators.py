@@ -58,7 +58,7 @@ class SEPGenerator(ImagePreprocess):
             return None
 
 
-    def generator(self, patient_InfoDatabase, max_slices=70, dark_matter=0.7, shuffle=True, dataset='train'):
+    def generator(self, patient_InfoDatabase, max_slices=45, dark_matter=0.7, shuffle=True, dataset='train'):
 
         """
         Args:
@@ -100,7 +100,7 @@ class SEPGenerator(ImagePreprocess):
             patient_dcm_FilePaths, patient_label 	= self.__get_DCMFilePaths(patient_information, dataset)
             # Select a random transformation 
             if dataset == 'train':
-                transformation = random.choice(['original', 'flip_v', 'flip_h', 'flip_vh', 'rot_c', 'rot_ac'])
+                transformation = 'original'#random.choice(['original', 'flip_v', 'flip_h', 'flip_vh', 'rot_c', 'rot_ac'])
             else:
                 transformation = 'original'
             
@@ -126,7 +126,6 @@ class SEPGenerator(ImagePreprocess):
                 darkmatter_idx.append((dark_matter, n))
 
             relevant_idx = [item[1] for item in sorted(darkmatter_idx)][:max_slices]    # get relevant slices
-
             yield image_3D[relevant_idx], np.array([keys[patient_label]])
 
             itr += 1
