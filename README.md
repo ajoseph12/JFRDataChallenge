@@ -2,7 +2,7 @@
 Multiple sclerosis (MS) is a chronic inflammatory disease of the central nervous system that causes the immune system to destroy the sheath of nerve fibres (myelin) in the brain, spinal cord and optic nerves. It is currently the leading cause of non-traumatic disability in young adults in France.
 Myelin helps to accelerate the transmission of information between the brain and other parts of the body. This explains the appearance of neurological signs when it is altered. Symptoms vary according to the region affected, making the disease unpredictable for a given person. Currently, the correlations between imaging and disability data remain weak.
 
-![Screenshot](brain_scan.png){:height="500px" width="500px"}
+![Screenshot](brain_scan.png {:height="500px" width="500px"})
 
 The EDSS (Expanded Disability Status Scale) remains the main clinical rating tool common to all neurologists for judging patient progress. The overall score of the scale is measured on a scale of 20 levels (0 to 10 per half point). Up to level 3.5, the score obtained in each FP (Functional Parameter) and the number of FPs achieved automatically determine the EDSS score. From 4 to 7, the definition of each level is also given by the inability to walk (ability to walk without stopping, need for help).2 More information on this score: https://www.edmus.org/fr/dl/scales/edmus_edss.pdf
 
